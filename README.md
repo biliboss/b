@@ -12,12 +12,20 @@ B is a command-line interface that acts as a universal workflow agent by prepend
 
 ## Installation
 
-### Quick Install
+### Option 1: Production Install (Stable)
 ```bash
-git clone <repository>
+git clone https://github.com/biliboss/b.git
 cd b
 chmod +x install.sh
 ./install.sh
+```
+
+### Option 2: Development Install (Auto-Updates) ⭐ **RECOMMENDED**
+```bash
+git clone https://github.com/biliboss/b.git
+cd b
+chmod +x install-dev.sh
+./install-dev.sh
 ```
 
 ### Manual Install
@@ -25,10 +33,16 @@ chmod +x install.sh
 pip install .
 ```
 
-### Development Install
+## 🔄 Updates
+
+### Auto-Update (Development Install)
+If you used `install-dev.sh`, **changes are applied automatically** when you modify the code!
+
+### Manual Update
 ```bash
-pip install -e .
+b --update
 ```
+This pulls the latest changes from GitHub.
 
 ## Usage
 

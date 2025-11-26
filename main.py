@@ -48,6 +48,34 @@ def run_claude(prompt):
         sys.exit(1)
 
 
+def update_from_github():
+    """Update CLI to latest version from GitHub."""
+    print("🔄 Checking for updates from GitHub...")
+    
+    try:
+        # Get the directory where this script is located
+        script_dir = Path(__file__).parent
+        
+        # Run git pull to update
+        result = subprocess.run(
+            ['git', '-C', str(script_dir), 'pull', 'origin', 'main'],
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode == 0:
+            print("✅ Successfully updated from GitHub!")
+            print("Changes applied:")
+            print(result.stdout)
+        else:
+            print("❌ Failed to update from GitHub:")
+            print(result.stderr)
+            
+    except FileNotFoundError:
+        print("❌ Git not found. Please install git to use auto-update feature.")
+    except Exception as e:
+        print(f"❌ Error during update: {e}")
+
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -58,11 +86,13 @@ Examples:
   b "Create a REST API for user management"
   b --3 "Design a database schema for e-commerce"
   b -b "Analyze the performance of this algorithm"
+  b --update "Update to latest version from GitHub"
         """
     )
 
     parser.add_argument(
         'prompt',
+        nargs='?',
         help='The prompt to process (enclosed in quotes if contains spaces)'
     )
 
@@ -78,7 +108,22 @@ Examples:
         help='Spawn sub-agents in background'
     )
 
+    parser.add_argument(
+        '--update',
+        action='store_true',
+        help='Update to latest version from GitHub'
+    )
+
     args = parser.parse_args()
+
+    # Handle update command
+    if args.update:
+        update_from_github()
+        return
+
+    # Require prompt if not updating
+    if not args.prompt:
+        parser.error("Prompt is required when not using --update")
 
     # Read b.md content
     bmd_content = read_bmd()
