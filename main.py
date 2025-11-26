@@ -15,9 +15,36 @@ from pathlib import Path
 
 def read_bmd():
     """Read the b.md file content."""
-    bmd_path = Path(__file__).parent / "b.md"
+    # First try to find b.md in the same directory as the script
+    script_dir = Path(__file__).parent
+    bmd_path = script_dir / "b.md"
+    
+    # If not found, try the repository location (for pipx installs)
     if not bmd_path.exists():
-        print("Error: b.md file not found in the same directory as the script")
+        # Try to find it in the original repository location
+        repo_paths = [
+            Path("/mnt/c/src_l/b/b.md"),  # Current known location
+            Path.home() / "src" / "l" / "b" / "b.md",  # Possible user repo
+            Path.home() / "projects" / "b" / "b.md",  # Another possible location
+        ]
+        
+        for path in repo_paths:
+            if path.exists():
+                bmd_path = path
+                break
+        
+        # If still not found, try current directory
+        if not bmd_path.exists():
+            current_bmd = Path.cwd() / "b.md"
+            if current_bmd.exists():
+                bmd_path = current_bmd
+
+    if not bmd_path.exists():
+        print("Error: b.md file not found. Please ensure you're in the B CLI repository directory.")
+        print("Expected locations:")
+        print(f"  - {script_dir}/b.md")
+        print(f"  - /mnt/c/src_l/b/b.md")
+        print(f"  - Current directory: {Path.cwd()}/b.md")
         sys.exit(1)
 
     with open(bmd_path, 'r', encoding='utf-8') as f:
@@ -80,13 +107,30 @@ def init_workflow_symlinks():
     """Initialize b.md symlinks in Windsurf and Claude Code workflow folders."""
     print("🔗 Initializing b.md workflow symlinks...")
     
-    # Get the directory where this script and b.md are located
+    # Find the b.md file using the same logic as read_bmd()
     script_dir = Path(__file__).parent
     bmd_source = script_dir / "b.md"
     
     if not bmd_source.exists():
-        print(f"❌ Error: b.md not found at {bmd_source}")
+        # Try repository locations
+        repo_paths = [
+            Path("/mnt/c/src_l/b/b.md"),  # Current known location
+            Path.home() / "src" / "l" / "b" / "b.md",  # Possible user repo
+            Path.home() / "projects" / "b" / "b.md",  # Another possible location
+            Path.cwd() / "b.md",  # Current directory
+        ]
+        
+        for path in repo_paths:
+            if path.exists():
+                bmd_source = path
+                break
+    
+    if not bmd_source.exists():
+        print(f"❌ Error: b.md not found in any expected location")
+        print("Please ensure you're in the B CLI repository directory or install from source.")
         return
+    
+    print(f"📁 Using b.md from: {bmd_source}")
     
     # Common workflow folders for Windsurf and Claude Code
     workflow_paths = [
@@ -103,32 +147,24 @@ def init_workflow_symlinks():
     success_count = 0
     
     for workflow_dir in workflow_paths:
-        if workflow_dir.exists():
-            try:
-                # Create the symlink
-                symlink_target = workflow_dir / "b.md"
-                
-                # Remove existing symlink if it exists
-                if symlink_target.exists() or symlink_target.is_symlink():
-                    symlink_target.unlink()
-                
-                # Create new symlink
-                symlink_target.symlink_to(bmd_source)
-                print(f"✅ Created symlink: {symlink_target} -> {bmd_source}")
-                success_count += 1
-                
-            except Exception as e:
-                print(f"⚠️  Could not create symlink in {workflow_dir}: {e}")
-        else:
-            # Try to create the directory and then symlink
-            try:
-                workflow_dir.mkdir(parents=True, exist_ok=True)
-                symlink_target = workflow_dir / "b.md"
-                symlink_target.symlink_to(bmd_source)
-                print(f"✅ Created directory and symlink: {symlink_target} -> {bmd_source}")
-                success_count += 1
-            except Exception as e:
-                print(f"⚠️  Could not create directory/symlink in {workflow_dir}: {e}")
+        try:
+            # Create the directory if it doesn't exist
+            workflow_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Create the symlink
+            symlink_target = workflow_dir / "b.md"
+            
+            # Remove existing symlink if it exists
+            if symlink_target.exists() or symlink_target.is_symlink():
+                symlink_target.unlink()
+            
+            # Create new symlink
+            symlink_target.symlink_to(bmd_source)
+            print(f"✅ Created symlink: {symlink_target} -> {bmd_source}")
+            success_count += 1
+            
+        except Exception as e:
+            print(f"⚠️  Could not create symlink in {workflow_dir}: {e}")
     
     if success_count > 0:
         print(f"\n🎉 Successfully initialized {success_count} workflow symlink(s)!")
@@ -137,9 +173,9 @@ def init_workflow_symlinks():
         print("   • Claude Code workflows")
         print("\n💡 You may need to restart Windsurf/Claude Code for changes to take effect.")
     else:
-        print("\n⚠️  No workflow directories found or created.")
+        print("\n⚠️  No workflow symlinks created.")
         print("💡 You can manually create symlinks to b.md in your preferred workflow locations.")
-
+        print(f"   Source file: {bmd_source}")
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
