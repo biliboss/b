@@ -76,6 +76,70 @@ def update_from_github():
     except Exception as e:
         print(f"❌ Error during update: {e}")
 
+def init_workflow_symlinks():
+    """Initialize b.md symlinks in Windsurf and Claude Code workflow folders."""
+    print("🔗 Initializing b.md workflow symlinks...")
+    
+    # Get the directory where this script and b.md are located
+    script_dir = Path(__file__).parent
+    bmd_source = script_dir / "b.md"
+    
+    if not bmd_source.exists():
+        print(f"❌ Error: b.md not found at {bmd_source}")
+        return
+    
+    # Common workflow folders for Windsurf and Claude Code
+    workflow_paths = [
+        Path.home() / ".windsurf" / "workflows",
+        Path.home() / ".claude" / "workflows", 
+        Path.home() / ".claude-code" / "workflows",
+        Path.home() / ".config" / "windsurf" / "workflows",
+        Path.home() / ".config" / "claude" / "workflows",
+        # Windows equivalent paths
+        Path.home() / "AppData" / "Local" / "Windsurf" / "workflows",
+        Path.home() / "AppData" / "Local" / "Claude" / "workflows",
+    ]
+    
+    success_count = 0
+    
+    for workflow_dir in workflow_paths:
+        if workflow_dir.exists():
+            try:
+                # Create the symlink
+                symlink_target = workflow_dir / "b.md"
+                
+                # Remove existing symlink if it exists
+                if symlink_target.exists() or symlink_target.is_symlink():
+                    symlink_target.unlink()
+                
+                # Create new symlink
+                symlink_target.symlink_to(bmd_source)
+                print(f"✅ Created symlink: {symlink_target} -> {bmd_source}")
+                success_count += 1
+                
+            except Exception as e:
+                print(f"⚠️  Could not create symlink in {workflow_dir}: {e}")
+        else:
+            # Try to create the directory and then symlink
+            try:
+                workflow_dir.mkdir(parents=True, exist_ok=True)
+                symlink_target = workflow_dir / "b.md"
+                symlink_target.symlink_to(bmd_source)
+                print(f"✅ Created directory and symlink: {symlink_target} -> {bmd_source}")
+                success_count += 1
+            except Exception as e:
+                print(f"⚠️  Could not create directory/symlink in {workflow_dir}: {e}")
+    
+    if success_count > 0:
+        print(f"\n🎉 Successfully initialized {success_count} workflow symlink(s)!")
+        print("\n📋 Integration complete! b.md workflow rules will now be available in:")
+        print("   • Windsurf workflows")
+        print("   • Claude Code workflows")
+        print("\n💡 You may need to restart Windsurf/Claude Code for changes to take effect.")
+    else:
+        print("\n⚠️  No workflow directories found or created.")
+        print("💡 You can manually create symlinks to b.md in your preferred workflow locations.")
+
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -87,6 +151,7 @@ Examples:
   b --3 "Design a database schema for e-commerce"
   b -b "Analyze the performance of this algorithm"
   b --update "Update to latest version from GitHub"
+  b init "Initialize b.md workflow symlinks"
         """
     )
 
@@ -114,16 +179,28 @@ Examples:
         help='Update to latest version from GitHub'
     )
 
+    parser.add_argument(
+        'init',
+        nargs='?',
+        const='init',
+        help='Initialize b.md workflow symlinks for Windsurf/Claude Code'
+    )
+
     args = parser.parse_args()
+
+    # Handle init command
+    if args.prompt == 'init' or args.init == 'init':
+        init_workflow_symlinks()
+        return
 
     # Handle update command
     if args.update:
         update_from_github()
         return
 
-    # Require prompt if not updating
+    # Require prompt if not updating or initializing
     if not args.prompt:
-        parser.error("Prompt is required when not using --update")
+        parser.error("Prompt is required when not using --update or init")
 
     # Read b.md content
     bmd_content = read_bmd()

@@ -3,6 +3,7 @@
 - MUST understand the scenario and variables
 - MUST understand the desired result
 - MUST deliver the result
+- MUST run `Log experiences` when you complete the interaction (delegate in background)
 
 # Modificators
 

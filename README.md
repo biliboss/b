@@ -44,6 +44,23 @@ b --update
 ```
 This pulls the latest changes from GitHub.
 
+## 🔗 Workflow Integration
+
+### Initialize Workflows
+```bash
+b init
+```
+This automatically creates symlinks to `b.md` in Windsurf and Claude Code workflow folders, making the workflow rules available natively in these IDEs.
+
+**Supported locations:**
+- `~/.windsurf/workflows/`
+- `~/.claude/workflows/`
+- `~/.claude-code/workflows/`
+- `~/.config/windsurf/workflows/`
+- `~/.config/claude/workflows/`
+- Windows: `%APPDATA%\Windsurf\workflows\`
+- Windows: `%APPDATA%\Claude\workflows\`
+
 ## Usage
 
 ### Basic Usage
